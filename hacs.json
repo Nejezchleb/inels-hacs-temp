@@ -1,0 +1,13 @@
+{
+    "name": "iNELS to MQTT (Testing and fair purposes)",
+    "hide_default_branch": true,
+    "hacs": "1.9.0",
+    "domains": [
+        "switch",
+        "light",
+        "water_heater",
+		"sensor",
+		"cover"
+    ],
+    "homeassistant": "2020.12.0"
+}
