@@ -4,7 +4,7 @@
   "config_flow": true,
   "issue_tracker": "https://github.com/Nejezchleb/inels-hacs-temp/issues",
   "version": "0.0.1",
-  "documentation": "https://www.home-assistant.io/integrations/inels",
+  "documentation": "https://github.com/Nejezchleb/inels-hacs-temp",
   "requirements": [
     "inels-mqtt==0.0.39"
   ],
