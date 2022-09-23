@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from inelsmqtt.devices import Device
+
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -10,8 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .base_class import InelsBaseEntity
-from .const import COORDINATOR_LIST, DOMAIN, ICON_SWITCH
-from .coordinator import InelsDeviceUpdateCoordinator
+from .const import DEVICES, DOMAIN, ICON_SWITCH
 
 
 async def async_setup_entry(
@@ -20,13 +21,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Load Inels switch.."""
-    coordinator_data = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR_LIST]
+    device_list = hass.data[DOMAIN][config_entry.entry_id][DEVICES]
 
     async_add_entities(
         [
-            InelsSwitch(device_coordinator)
-            for device_coordinator in coordinator_data
-            if device_coordinator.device.device_type == Platform.SWITCH
+            InelsSwitch(device)
+            for device in device_list
+            if device.device_type == Platform.SWITCH
         ],
     )
 
@@ -34,20 +35,14 @@ async def async_setup_entry(
 class InelsSwitch(InelsBaseEntity, SwitchEntity):
     """The platform class required by Home Assistant."""
 
-    def __init__(self, device_coordinator: InelsDeviceUpdateCoordinator) -> None:
+    def __init__(self, device: Device) -> None:
         """Initialize a switch."""
-        super().__init__(device_coordinator=device_coordinator)
-        self._device_control = self._device
-
-    def _refresh(self) -> None:
-        """Refresh the device."""
-        super()._refresh()
-        self._device_control = self._device
+        super().__init__(device=device)
 
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
-        return self._device_control.state
+        return self._device.state
 
     @property
     def icon(self) -> str | None:
@@ -56,12 +51,12 @@ class InelsSwitch(InelsBaseEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Instruct the switch to turn off."""
-        if not self._device_control.is_available:
+        if not self._device.is_available:
             return None
-        await self.hass.async_add_executor_job(self._device_control.set_ha_value, False)
+        await self.hass.async_add_executor_job(self._device.set_ha_value, False)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Instruct the switch to turn on."""
-        if not self._device_control.is_available:
+        if not self._device.is_available:
             return None
-        await self.hass.async_add_executor_job(self._device_control.set_ha_value, True)
+        await self.hass.async_add_executor_job(self._device.set_ha_value, True)

@@ -12,8 +12,7 @@ from homeassistant.const import CONF_HOST, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from .const import BROKER, BROKER_CONFIG, COORDINATOR_LIST, DOMAIN, LOGGER
-from .coordinator import InelsDeviceUpdateCoordinator
+from .const import BROKER, BROKER_CONFIG, DEVICES, DOMAIN, LOGGER
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
@@ -60,16 +59,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         i_disc = InelsDiscovery(inels_data[BROKER])
         await hass.async_add_executor_job(i_disc.discovery)
 
-        devices: list[Device] = i_disc.devices
+        inels_data[DEVICES]: list[Device] = i_disc.devices
     except Exception as exc:
         await hass.async_add_executor_job(mqtt.close)
         raise ConfigEntryNotReady from exc
-
-    inels_data[COORDINATOR_LIST] = []
-
-    for device in devices:
-        coordinator = InelsDeviceUpdateCoordinator(hass=hass, device=device)
-        inels_data[COORDINATOR_LIST].append(coordinator)
 
     hass.data[DOMAIN][entry.entry_id] = inels_data
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)

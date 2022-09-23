@@ -7,7 +7,7 @@ DOMAIN = "inels"
 
 BROKER_CONFIG = "inels_mqtt_broker_config"
 BROKER = "inels_mqtt_broker"
-COORDINATOR_LIST = "coordinator_list"
+DEVICES = "devices"
 
 CONF_DISCOVERY_PREFIX = "discovery_prefix"
 

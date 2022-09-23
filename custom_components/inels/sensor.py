@@ -20,8 +20,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .base_class import InelsBaseEntity
-from .const import COORDINATOR_LIST, DOMAIN, ICON_BATTERY, ICON_TEMPERATURE
-from .coordinator import InelsDeviceUpdateCoordinator
+from .const import DEVICES, DOMAIN, ICON_BATTERY, ICON_TEMPERATURE
 
 
 @dataclass
@@ -110,23 +109,19 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Load Inels switch.."""
-    coordinator_data: list[InelsDeviceUpdateCoordinator] = hass.data[DOMAIN][
-        config_entry.entry_id
-    ][COORDINATOR_LIST]
+    device_list: list[Device] = hass.data[DOMAIN][config_entry.entry_id][DEVICES]
 
     entities: list[InelsSensor] = []
 
-    for device_coordinator in coordinator_data:
-        if device_coordinator.device.device_type == Platform.SENSOR:
-            if device_coordinator.device.inels_type == RFTI_10B:
+    for device in device_list:
+        if device.device_type == Platform.SENSOR:
+            if device.inels_type == RFTI_10B:
                 descriptions = SENSOR_DESCRIPTION_TEMPERATURE
             else:
                 continue
 
             for description in descriptions:
-                entities.append(
-                    InelsSensor(device_coordinator, description=description)
-                )
+                entities.append(InelsSensor(device, description=description))
 
     async_add_entities(entities, True)
 
@@ -138,13 +133,11 @@ class InelsSensor(InelsBaseEntity, SensorEntity):
 
     def __init__(
         self,
-        device_coordinator: InelsDeviceUpdateCoordinator,
+        device: Device,
         description: InelsSensorEntityDescription,
     ) -> None:
         """Initialize a sensor."""
-        super().__init__(device_coordinator=device_coordinator)
-
-        self._device_control = self._device
+        super().__init__(device=device)
 
         self.entity_description = description
         self._attr_unique_id = f"{self._attr_unique_id}-{description.key}"
@@ -155,5 +148,4 @@ class InelsSensor(InelsBaseEntity, SensorEntity):
     def _refresh(self) -> None:
         """Refresh the device."""
         super()._refresh()
-        self._device_control = self._device
-        self._attr_native_value = self.entity_description.value(self._device_control)
+        self._attr_native_value = self.entity_description.value(self._device)
