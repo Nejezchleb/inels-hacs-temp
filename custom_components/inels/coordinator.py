@@ -25,7 +25,7 @@ class InelsDeviceUpdateCoordinator(DataUpdateCoordinator[Device]):
             hass,
             LOGGER,
             name=f"Update coordinator for {device}",
-            update_interval=timedelta(seconds=SCAN_INTERVAL),
+            # update_interval=timedelta(seconds=SCAN_INTERVAL),
         )
 
     @property

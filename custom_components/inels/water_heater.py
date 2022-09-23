@@ -1,34 +1,29 @@
 """iNELS water heater valve."""
 from __future__ import annotations
+
 from typing import Any
 
+from inelsmqtt.devices import Device
+import inelsmqtt.util as InelsUtil
+
 from homeassistant.components.water_heater import (
+    STATE_OFF,
     WaterHeaterEntity,
     WaterHeaterEntityFeature,
-    STATE_OFF,
 )
-
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    ATTR_TEMPERATURE,
-    STATE_ON,
-    TEMP_CELSIUS,
-    Platform,
-)
+from homeassistant.const import ATTR_TEMPERATURE, STATE_ON, TEMP_CELSIUS, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .coordinator import InelsDeviceUpdateCoordinator
+from .base_class import InelsBaseEntity
 from .const import (
-    COORDINATOR_LIST,
+    DEVICES,
+    DEFAULT_MAX_TEMP,
+    DEFAULT_MIN_TEMP,
     DOMAIN,
     ICON_WATER_HEATER_DICT,
-    DEFAULT_MIN_TEMP,
-    DEFAULT_MAX_TEMP,
 )
-from .base_class import InelsBaseEntity
-
-import inelsmqtt.util as InelsUtil
 
 SUPPORT_FLAGS_HEATER = (
     WaterHeaterEntityFeature.TARGET_TEMPERATURE
@@ -47,15 +42,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Load Inels water heater from config entry."""
-    coordinator_data: list[InelsDeviceUpdateCoordinator] = hass.data[DOMAIN][
-        config_entry.entry_id
-    ][COORDINATOR_LIST]
+    device_list: list[Device] = hass.data[DOMAIN][config_entry.entry_id][DEVICES]
 
     async_add_entities(
         [
-            InelsWaterHeater(device_coordinator)
-            for device_coordinator in coordinator_data
-            if device_coordinator.device.device_type == Platform.WATER_HEATER
+            InelsWaterHeater(device)
+            for device in device_list
+            if device.device_type == Platform.WATER_HEATER
         ],
     )
 
@@ -65,10 +58,9 @@ class InelsWaterHeater(InelsBaseEntity, WaterHeaterEntity):
 
     _attr_supported_features = SUPPORT_FLAGS_HEATER
 
-    def __init__(self, device_coordinator: InelsDeviceUpdateCoordinator) -> None:
+    def __init__(self, device: Device) -> None:
         """Initialize a water heater."""
-        super().__init__(device_coordinator=device_coordinator)
-        self._device_control = self._device
+        super().__init__(device=device)
 
         self._attr_temperature_unit = TEMP_CELSIUS
         self._attr_operation_list = OPERATION_LIST
@@ -112,11 +104,6 @@ class InelsWaterHeater(InelsBaseEntity, WaterHeaterEntity):
             return self._device.state.required
 
         return super().target_temperature
-
-    def _refresh(self) -> None:
-        """Refresh the device."""
-        super()._refresh()
-        self._device_control = self._device
 
     async def async_set_operation_mode(self, operation_mode: str) -> None:
         """Set operation mode."""

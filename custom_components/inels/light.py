@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, cast
 
 from inelsmqtt.const import RFDAC_71B
+from inelsmqtt.devices import Device
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -17,8 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .base_class import InelsBaseEntity
-from .const import COORDINATOR_LIST, DOMAIN, ICON_LIGHT
-from .coordinator import InelsDeviceUpdateCoordinator
+from .const import DEVICES, DOMAIN, ICON_LIGHT
 
 
 async def async_setup_entry(
@@ -27,15 +27,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Load Inels lights from config entry."""
-    coordinator_data: list[InelsDeviceUpdateCoordinator] = hass.data[DOMAIN][
-        config_entry.entry_id
-    ][COORDINATOR_LIST]
+    device_list: list[Device] = hass.data[DOMAIN][config_entry.entry_id][DEVICES]
 
     async_add_entities(
         [
-            InelsLight(device_coordinator)
-            for device_coordinator in coordinator_data
-            if device_coordinator.device.device_type == Platform.LIGHT
+            InelsLight(device)
+            for device in device_list
+            if device.device_type == Platform.LIGHT
         ],
     )
 
@@ -43,24 +41,18 @@ async def async_setup_entry(
 class InelsLight(InelsBaseEntity, LightEntity):
     """Light class for HA."""
 
-    def __init__(self, device_coordinator: InelsDeviceUpdateCoordinator) -> None:
+    def __init__(self, device: Device) -> None:
         """Initialize a light."""
-        super().__init__(device_coordinator=device_coordinator)
-        self._device_control = self._device
+        super().__init__(device=device)
 
         self._attr_supported_color_modes: set[ColorMode] = set()
-        if self._device_control.inels_type is RFDAC_71B:
+        if self._device.inels_type is RFDAC_71B:
             self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
-
-    def _refresh(self) -> None:
-        """Refresh the device."""
-        super()._refresh()
-        self._device_control = self._device
 
     @property
     def is_on(self) -> bool:
         """Return true if light is on."""
-        return self._device_control.state > 0
+        return self._device.state > 0
 
     @property
     def icon(self) -> str | None:
@@ -70,13 +62,13 @@ class InelsLight(InelsBaseEntity, LightEntity):
     @property
     def brightness(self) -> int | None:
         """Light brightness."""
-        if self._device_control.inels_type is not RFDAC_71B:
+        if self._device.inels_type is not RFDAC_71B:
             return None
-        return cast(int, self._device_control.state * 2.55)
+        return cast(int, self._device.state * 2.55)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Light to turn off."""
-        if not self._device_control:
+        if not self._device:
             return
 
         transition = None
@@ -85,11 +77,11 @@ class InelsLight(InelsBaseEntity, LightEntity):
             transition = int(kwargs[ATTR_TRANSITION]) / 0.065
             print(transition)
         else:
-            await self.hass.async_add_executor_job(self._device_control.set_ha_value, 0)
+            await self.hass.async_add_executor_job(self._device.set_ha_value, 0)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Light to turn on."""
-        if not self._device_control:
+        if not self._device:
             return
 
         if ATTR_BRIGHTNESS in kwargs:
@@ -97,9 +89,7 @@ class InelsLight(InelsBaseEntity, LightEntity):
             brightness = min(brightness, 100)
 
             await self.hass.async_add_executor_job(
-                self._device_control.set_ha_value, brightness
+                self._device.set_ha_value, brightness
             )
         else:
-            await self.hass.async_add_executor_job(
-                self._device_control.set_ha_value, 100
-            )
+            await self.hass.async_add_executor_job(self._device.set_ha_value, 100)

@@ -2,11 +2,11 @@
   "domain": "inels",
   "name": "iNELS",
   "config_flow": true,
-  "issue_tracker": "https://github.com/Nejezchleb/inels-hacs-temp/issues",
   "version": "0.0.1",
+  "issue_tracker": "https://github.com/Nejezchleb/inels-hacs-temp/issues",
   "documentation": "https://github.com/Nejezchleb/inels-hacs-temp",
   "requirements": [
-    "inels-mqtt==0.0.39"
+    "inels-mqtt==0.0.42"
   ],
   "dependencies": [
     "mqtt"
@@ -18,5 +18,5 @@
     "@Nejezchleb",
     "@jhoralek"
   ],
-  "iot_class": "local_polling"
+  "iot_class": "local_push"
 }
