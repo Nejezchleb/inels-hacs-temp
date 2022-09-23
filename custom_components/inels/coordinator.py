@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import LOGGER
 
-SCAN_INTERVAL = 5
+SCAN_INTERVAL = 3
 
 
 class InelsDeviceUpdateCoordinator(DataUpdateCoordinator[Device]):
