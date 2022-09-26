@@ -4,7 +4,6 @@ from typing import Any
 
 from inelsmqtt.devices import Device
 
-from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo, Entity
 
 from .const import DOMAIN
@@ -26,7 +25,7 @@ class InelsBaseEntity(Entity):
         self._attr_unique_id = f"{self._parent_id}-{self._device_id}"
 
     async def async_added_to_hass(self) -> None:
-        # await super().async_added_to_hass()
+
         self.async_on_remove(
             self._device.mqtt.subscribe_listener(
                 self._device.state_topic, self._callback
@@ -59,4 +58,7 @@ class InelsBaseEntity(Entity):
     @property
     def available(self) -> bool:
         """Return if entity si available."""
+        if self._device.is_subscribed is False:
+            self._device.mqtt.subscribe(self._device.state_topic)
+
         return self._device.is_available and super().available
