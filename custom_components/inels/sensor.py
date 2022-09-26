@@ -145,7 +145,9 @@ class InelsSensor(InelsBaseEntity, SensorEntity):
         if description.name:
             self._attr_name = f"{self._attr_name}-{description.name}"
 
-    def _refresh(self) -> None:
-        """Refresh the device."""
-        super()._refresh()
+        self._attr_native_value = self.entity_description.value(self._device)
+
+    def _callback(self, new_value: Any) -> None:
+        """Refresh data."""
+        super()._callback(new_value)
         self._attr_native_value = self.entity_description.value(self._device)
