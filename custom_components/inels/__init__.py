@@ -15,11 +15,13 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from .const import BROKER, BROKER_CONFIG, DEVICES, DOMAIN, LOGGER
 
 PLATFORMS: list[Platform] = [
+    Platform.BUTTON,
     Platform.SWITCH,
     Platform.LIGHT,
     Platform.COVER,
     Platform.SENSOR,
     Platform.WATER_HEATER,
+    Platform.CLIMATE,
 ]
 
 
@@ -77,7 +79,12 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
+    hass_data = hass.data[DOMAIN][entry.entry_id]
+    broker: InelsMqtt = hass_data[BROKER]
 
-    return unload_ok
+    broker.unsubscribe_listeners()
+    broker.disconnect()
+
+    hass.data[DOMAIN].pop(entry.entry_id)
+    if not hass.data[DOMAIN]:
+        hass.data.pop(DOMAIN)
