@@ -16,7 +16,7 @@ DESCRIPTION = ""
 INELS_VERSION = 1
 LOGGER = logging.getLogger(__package__)
 
-DEFAULT_MIN_TEMP = 0.0  # °C
+DEFAULT_MIN_TEMP = 10.0  # °C
 DEFAULT_MAX_TEMP = 50.0  # °C
 
 ICON_TEMPERATURE = "mdi:thermometer"
@@ -25,6 +25,7 @@ ICON_SWITCH = "mdi:power-socket-eu"
 ICON_LIGHT = "mdi:lightbulb"
 ICON_SHUTTER_CLOSED = "mdi:window-shutter"
 ICON_SHUTTER_OPEN = "mdi:window-shutter-open"
+ICON_BUTTON = "mdi:button-pointer"
 
 ICON_WATER_HEATER_DICT = {
     "on": "mdi:valve-open",
@@ -37,3 +38,6 @@ ICONS = {
 }
 
 MANUAL_SETUP = "manual"
+
+BUTTON_PRESS_STATE = "press"
+BUTTON_NO_ACTION_STATE = "no_action"
