@@ -68,7 +68,7 @@ class InelsButton(InelsBaseEntity, ButtonEntity):
     """Button switch can be toogled using with MQTT."""
 
     entity_description: InelsButtonDescription
-    _attr_device_class: ButtonDeviceClass = ButtonDeviceClass.UPDATE
+    _attr_device_class: ButtonDeviceClass = ButtonDeviceClass.RESTART
 
     def __init__(self, device: Device, description: InelsButtonDescription) -> None:
         """Initialize a button."""
