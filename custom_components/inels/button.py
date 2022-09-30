@@ -10,7 +10,11 @@ from homeassistant.components.button import (
     ButtonEntity,
     ButtonEntityDescription,
     ButtonDeviceClass,
+    SERVICE_PRESS,
 )
+
+from homeassistant.const import ATTR_ENTITY_ID
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -80,23 +84,19 @@ class InelsButton(InelsBaseEntity, ButtonEntity):
         if description.name:
             self._attr_name = f"{self._attr_name}-{description.name}"
 
-    def __process_state(self) -> None:
-        """Process state button life cycle."""
-        state = (
-            BUTTON_PRESS_STATE
-            if self._device.values.ha_value.pressing
-            else BUTTON_NO_ACTION_STATE
-        )
-
-        self.hass.states.set(
-            f"{Platform.BUTTON}.{self._device_id}_btn_{self._device.values.ha_value.number}",
-            state,
-        )
-        self.async_write_ha_state()
-
     def _callback(self, new_value: Any) -> None:
         super()._callback(new_value)
-        self.__process_state()
+        # self.__process_state()
+        entity_id = f"{Platform.BUTTON}.{self._device_id}_btn_{self._device.values.ha_value.number}"
 
-    async def async_press(self) -> None:
+        if self._device.values.ha_value.pressing:
+            self.hass.services.call(
+                Platform.BUTTON,
+                SERVICE_PRESS,
+                {ATTR_ENTITY_ID: entity_id},
+                True,
+                self._context,
+            )
+
+    def press(self) -> None:
         """Press the button."""
