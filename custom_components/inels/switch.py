@@ -40,6 +40,8 @@ class InelsSwitch(InelsBaseEntity, SwitchEntity):
         """Initialize a switch."""
         super().__init__(device=device)
 
+        self._state_attrs = None
+
         if isinstance(device.state, bool) is False:
             if hasattr(device.state, "on"):
                 self._state_attrs = {
