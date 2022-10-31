@@ -1,5 +1,6 @@
 """Base class for Inels components."""
 from __future__ import annotations
+
 from typing import Any
 
 from inelsmqtt.devices import Device

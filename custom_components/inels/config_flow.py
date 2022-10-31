@@ -10,7 +10,6 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.components.hassio.discovery import HassioServiceInfo
-from homeassistant.components.mqtt.const import DEFAULT_DISCOVERY
 from homeassistant.const import (
     CONF_DISCOVERY,
     CONF_HOST,
@@ -68,7 +67,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
             if test_connect:
-                user_input[CONF_DISCOVERY] = DEFAULT_DISCOVERY
+                user_input[CONF_DISCOVERY] = True
                 return self.async_create_entry(
                     title=TITLE,
                     data={
@@ -77,7 +76,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_USERNAME: user_input.get(CONF_USERNAME),
                         CONF_PASSWORD: user_input.get(CONF_PASSWORD),
                         MQTT_TRANSPORT: user_input.get(MQTT_TRANSPORT),
-                        CONF_DISCOVERY: DEFAULT_DISCOVERY,
+                        CONF_DISCOVERY: True,
                     },
                 )
 
@@ -140,7 +139,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_USERNAME: data.get(CONF_USERNAME),
                         CONF_PASSWORD: data.get(CONF_PASSWORD),
                         MQTT_TRANSPORT: data.get(MQTT_TRANSPORT),
-                        CONF_DISCOVERY: DEFAULT_DISCOVERY,
+                        CONF_DISCOVERY: True,
                     },
                 )
 
@@ -197,7 +196,7 @@ class InelsOptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_USERNAME: user_input.get(CONF_USERNAME),
                         CONF_PASSWORD: user_input.get(CONF_PASSWORD),
                         MQTT_TRANSPORT: user_input.get(MQTT_TRANSPORT),
-                        CONF_DISCOVERY: DEFAULT_DISCOVERY,
+                        CONF_DISCOVERY: True,
                     },
                 )
 

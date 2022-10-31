@@ -18,9 +18,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .base_class import InelsBaseEntity
 from .const import (
-    DEVICES,
     DEFAULT_MAX_TEMP,
     DEFAULT_MIN_TEMP,
+    DEVICES,
     DOMAIN,
     ICON_WATER_HEATER_DICT,
 )
