@@ -4,7 +4,6 @@ from __future__ import annotations
 from typing import Any
 
 from inelsmqtt import InelsMqtt
-from inelsmqtt.devices import Device
 from inelsmqtt.discovery import InelsDiscovery
 
 from homeassistant.config_entries import ConfigEntry
@@ -61,7 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         i_disc = InelsDiscovery(inels_data[BROKER])
         await hass.async_add_executor_job(i_disc.discovery)
 
-        inels_data[DEVICES]: list[Device] = i_disc.devices
+        inels_data[DEVICES] = i_disc.devices
     except Exception as exc:
         await hass.async_add_executor_job(mqtt.close)
         raise ConfigEntryNotReady from exc

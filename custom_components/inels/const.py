@@ -35,6 +35,8 @@ ICON_WATER_HEATER_DICT = {
 ICONS = {
     Platform.SWITCH: ICON_SWITCH,
     Platform.SENSOR: ICON_TEMPERATURE,
+    Platform.BUTTON: ICON_BUTTON,
+    Platform.LIGHT: ICON_LIGHT,
 }
 
 MANUAL_SETUP = "manual"

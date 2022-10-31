@@ -1,34 +1,25 @@
 """Support for iNELS buttons."""
 from __future__ import annotations
 
-from typing import Any
 from dataclasses import dataclass
+from typing import Any
 
 from inelsmqtt.devices import Device
 
 from homeassistant.components.button import (
+    SERVICE_PRESS,
+    ButtonDeviceClass,
     ButtonEntity,
     ButtonEntityDescription,
-    ButtonDeviceClass,
-    SERVICE_PRESS,
 )
-
-from homeassistant.const import ATTR_ENTITY_ID
-
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import ATTR_ENTITY_ID, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .base_class import InelsBaseEntity
-from .const import (
-    DEVICES,
-    DOMAIN,
-    ICON_BUTTON,
-    BUTTON_PRESS_STATE,
-    BUTTON_NO_ACTION_STATE,
-)
+from .const import DEVICES, DOMAIN, ICON_BUTTON
 
 
 @dataclass
