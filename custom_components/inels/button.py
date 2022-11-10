@@ -76,8 +76,6 @@ class InelsButton(InelsBaseEntity, ButtonEntity):
             self._attr_name = f"{self._attr_name}-{description.name}"
 
     def _callback(self, new_value: Any) -> None:
-        super()._callback(new_value)
-        # self.__process_state()
         entity_id = f"{Platform.BUTTON}.{self._device_id}_btn_{self._device.values.ha_value.number}"
 
         if self._device.values.ha_value.pressing:
@@ -88,6 +86,8 @@ class InelsButton(InelsBaseEntity, ButtonEntity):
                 True,
                 self._context,
             )
+
+        super()._callback(new_value)
 
     def press(self) -> None:
         """Press the button."""
