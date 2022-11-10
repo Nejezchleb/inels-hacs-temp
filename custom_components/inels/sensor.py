@@ -3,10 +3,17 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from operator import itemgetter
+
 from typing import Any
 
-from inelsmqtt.const import BATTERY, RFTI_10B, TEMP_IN, TEMP_OUT, TEMP_SENSOR_DATA
+from inelsmqtt.const import (
+    BATTERY,
+    RFTI_10B,
+    RFTC_10_G,
+    TEMP_IN,
+    TEMP_OUT,
+    TEMPERATURE,
+)
 from inelsmqtt.devices import Device
 
 from homeassistant.components.sensor import (
@@ -37,52 +44,34 @@ class InelsSensorEntityDescription(
     """Class for describing inels entities."""
 
 
-def _process_data(data: str, indexes: list) -> str:
-    """Process data for specific type of measurements."""
-    array = data.split("\n")[:-1]
-    data_range = itemgetter(*indexes)(array)
-    range_joined = "".join(data_range)
-
-    return f"0x{range_joined}"
-
-
-def __get_battery_level(device: Device) -> int | None:
-    """Get battery level of the device."""
-    if device.is_available is False:
-        return None
-
-    # then get calculate the battery. In our case iss 100 or 0
-    return (
-        100
-        if int(_process_data(device.state, TEMP_SENSOR_DATA[BATTERY]), 16) == 0
-        else 0
-    )
-
-
-def __get_temperature_in(device: Device) -> float | None:
-    """Get temperature inside."""
-    if device.is_available is False:
-        return None
-
-    return int(_process_data(device.state, TEMP_SENSOR_DATA[TEMP_IN]), 16) / 100
+def __get_temperature(device: Device) -> float | None:
+    """Get temperature."""
+    return getattr(device.state, TEMPERATURE)
 
 
 def __get_temperature_out(device: Device) -> float | None:
-    """Get temperature outside."""
-    if device.is_available is False:
-        return None
-
-    return int(_process_data(device.state, TEMP_SENSOR_DATA[TEMP_OUT]), 16) / 100
+    """Get output temperature."""
+    return getattr(device.state, TEMP_OUT)
 
 
-SENSOR_DESCRIPTION_TEMPERATURE: tuple[InelsSensorEntityDescription, ...] = (
+def __get_temperature_in(device: Device) -> float | None:
+    """Get inside temperature."""
+    return getattr(device.state, TEMP_IN)
+
+
+def _get_battery(device: Device) -> int | None:
+    """Get battery level."""
+    return getattr(device.state, BATTERY)
+
+
+SENSOR_DESCRIPTION_RFTI_10B: tuple[InelsSensorEntityDescription, ...] = (
     InelsSensorEntityDescription(
         key="battery_level",
         name="Battery",
         device_class=SensorDeviceClass.BATTERY,
         icon=ICON_BATTERY,
         native_unit_of_measurement=PERCENTAGE,
-        value=__get_battery_level,
+        value=_get_battery,
     ),
     InelsSensorEntityDescription(
         key="temp_in",
@@ -102,6 +91,57 @@ SENSOR_DESCRIPTION_TEMPERATURE: tuple[InelsSensorEntityDescription, ...] = (
     ),
 )
 
+SENSOR_DESCRIPTION_RFTC_10_G: tuple[InelsSensorEntityDescription, ...] = (
+    InelsSensorEntityDescription(
+        key="battery_level",
+        name="Battery",
+        device_class=SensorDeviceClass.BATTERY,
+        icon=ICON_BATTERY,
+        native_unit_of_measurement=PERCENTAGE,
+        value=_get_battery,
+    ),
+    InelsSensorEntityDescription(
+        key="temperature",
+        name="Temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        icon=ICON_TEMPERATURE,
+        native_unit_of_measurement=TEMP_CELSIUS,
+        value=__get_temperature,
+    ),
+)
+
+
+# def create_entities_description(device: Device) -> dict[InelsSensorEntityDescription]:
+#     """Based on the deivce will create entity description."""
+#     items: dict[InelsSensorEntityDescription] = []
+
+#     for feature in device.features:
+#         icon = None
+#         dev_class = None
+#         measurement = None
+
+#         if feature == BATTERY:
+#             icon = ICON_BATTERY
+#             dev_class = SensorDeviceClass.BATTERY
+#             measurement = PERCENTAGE
+#         elif feature in [TEMPERATURE, TEMP_IN, TEMP_OUT]:
+#             icon = ICON_TEMPERATURE
+#             dev_class = SensorDeviceClass.TEMPERATURE
+#             measurement = TEMP_CELSIUS
+
+#         items.append(
+#             InelsSensorEntityDescription(
+#                 key=feature,
+#                 name=feature,
+#                 device_class=dev_class,
+#                 native_unit_of_measurement=measurement,
+#                 icon=icon,
+#                 value=__get_value,
+#             )
+#         )
+
+#     return items
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -116,7 +156,9 @@ async def async_setup_entry(
     for device in device_list:
         if device.device_type == Platform.SENSOR:
             if device.inels_type == RFTI_10B:
-                descriptions = SENSOR_DESCRIPTION_TEMPERATURE
+                descriptions = SENSOR_DESCRIPTION_RFTI_10B
+            elif device.inels_type == RFTC_10_G:
+                descriptions = SENSOR_DESCRIPTION_RFTC_10_G
             else:
                 continue
 
@@ -145,9 +187,13 @@ class InelsSensor(InelsBaseEntity, SensorEntity):
         if description.name:
             self._attr_name = f"{self._attr_name}-{description.name}"
 
-        self._attr_native_value = self.entity_description.value(self._device)
+        value = self.entity_description.value(self._device)
+
+        self._attr_native_value = value
 
     def _callback(self, new_value: Any) -> None:
         """Refresh data."""
+        val = self.entity_description.value(self._device)
+        self._attr_native_value = val
+
         super()._callback(new_value)
-        self._attr_native_value = self.entity_description.value(self._device)

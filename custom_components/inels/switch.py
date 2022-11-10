@@ -40,21 +40,21 @@ class InelsSwitch(InelsBaseEntity, SwitchEntity):
         """Initialize a switch."""
         super().__init__(device=device)
 
-        # self._state_attrs = None
+        self._state_attrs = None
 
-        # if isinstance(device.state, bool) is False:
-        #     if hasattr(device.state, "on"):
-        #         self._state_attrs = {
-        #             ATTR_TEMPERATURE: device.state.temperature,
-        #             "on": device.state.on,
-        #         }
+        if isinstance(device.state, bool) is False:
+            if hasattr(device.state, "on"):
+                self._state_attrs = {
+                    ATTR_TEMPERATURE: device.state.temperature,
+                    "on": device.state.on,
+                }
 
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
-        # if isinstance(self._device.state, bool) is False:
-        #     if hasattr(self._device.state, "on"):
-        #         return self._device.state.on
+        if isinstance(self._device.state, bool) is False:
+            if hasattr(self._device.state, "on"):
+                return self._device.state.on
 
         return self._device.state
 
@@ -63,12 +63,12 @@ class InelsSwitch(InelsBaseEntity, SwitchEntity):
         """Switch icon."""
         return ICON_SWITCH
 
-    # @property
-    # def extra_state_attributes(self) -> Mapping[str, Any] | None:
-    #     """Extra attributes if exists."""
-    #     if self._state_attrs is None:
-    #         return super().extra_state_attributes
-    #     return self._state_attrs
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Extra attributes if exists."""
+        if self._state_attrs is None:
+            return super().extra_state_attributes
+        return self._state_attrs
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Instruct the switch to turn off."""
@@ -84,8 +84,9 @@ class InelsSwitch(InelsBaseEntity, SwitchEntity):
 
     def _callback(self, new_value: Any) -> None:
         """Get callback data from the broker."""
+        if self._state_attrs is not None:
+            if isinstance(self._device.state, bool) is False:
+                self._state_attrs[ATTR_TEMPERATURE] = self._device.state.temperature
+                self._state_attrs["on"] = self._device.state.on
+
         super()._callback(new_value)
-        # if self._state_attrs is not None:
-        #     if isinstance(self._device.state, bool) is False:
-        #         self._state_attrs[ATTR_TEMPERATURE] = self._device.state.temperature
-        #         self._state_attrs["on"] = self._device.state.on
