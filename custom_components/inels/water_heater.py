@@ -48,7 +48,7 @@ async def async_setup_entry(
         [
             InelsWaterHeater(device)
             for device in device_list
-            if device.device_type == Platform.WATER_HEATER
+            if device.device_type.value == Platform.WATER_HEATER
         ],
     )
 

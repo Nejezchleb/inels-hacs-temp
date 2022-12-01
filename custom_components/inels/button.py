@@ -38,7 +38,7 @@ async def async_setup_entry(
     entities = []
 
     for device in device_list:
-        if device.device_type == Platform.BUTTON:
+        if device.device_type.value == Platform.BUTTON:
             index = 1
             val = device.get_value()
             if val.ha_value is not None:

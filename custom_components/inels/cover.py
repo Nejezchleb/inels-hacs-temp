@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from inelsmqtt.const import RFJA_12, SHUTTER_STATE_LIST, STOP_DOWN, STOP_UP
+from inelsmqtt.const import SHUTTER_STATE_LIST, STOP_DOWN, STOP_UP, Element
 from inelsmqtt.devices import Device
 
 from homeassistant.components.cover import CoverDeviceClass, CoverEntity
@@ -28,7 +28,7 @@ async def async_setup_entry(
         [
             InelsCover(device)
             for device in device_list
-            if device.device_type == Platform.COVER
+            if device.device_type.value == Platform.COVER
         ],
     )
 
@@ -40,7 +40,7 @@ class InelsCover(InelsBaseEntity, CoverEntity):
         """Initialize a cover."""
         super().__init__(device=device)
 
-        if self._device.inels_type is RFJA_12:
+        if self._device.inels_type.value is Element.RFJA_12:
             self._attr_device_class = CoverDeviceClass.SHUTTER
         else:
             self._attr_device_class = CoverDeviceClass.SHUTTER

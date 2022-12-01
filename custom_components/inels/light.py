@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, cast
-
-from inelsmqtt.const import RFDAC_71B
-from inelsmqtt.devices import Device
+from inelsmqtt.devices.light import Light
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -27,27 +25,28 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Load Inels lights from config entry."""
-    device_list: list[Device] = hass.data[DOMAIN][config_entry.entry_id][DEVICES]
+    device_list: list[Light] = [
+        dev
+        for dev in hass.data[DOMAIN][config_entry.entry_id][DEVICES]
+        if dev.device_type.value == Platform.LIGHT
+    ]
 
-    async_add_entities(
-        [
-            InelsLight(device)
-            for device in device_list
-            if device.device_type == Platform.LIGHT
-        ],
-    )
+    lights = [InelsLight(device) for device in device_list]
+
+    async_add_entities(lights)
 
 
 class InelsLight(InelsBaseEntity, LightEntity):
     """Light class for HA."""
 
-    def __init__(self, device: Device) -> None:
+    def __init__(self, device: Light) -> None:
         """Initialize a light."""
         super().__init__(device=device)
 
         self._attr_supported_color_modes: set[ColorMode] = set()
-        if self._device.inels_type is RFDAC_71B:
-            self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
+
+        for feature in self._device.features:
+            self._attr_supported_color_modes.add(feature)
 
     @property
     def is_on(self) -> bool:
@@ -62,9 +61,10 @@ class InelsLight(InelsBaseEntity, LightEntity):
     @property
     def brightness(self) -> int | None:
         """Light brightness."""
-        if self._device.inels_type is not RFDAC_71B:
-            return None
-        return cast(int, self._device.state * 2.55)
+        if ATTR_BRIGHTNESS in self._device.features:
+            return cast(int, self._device.state * 2.55)
+        # there is not brightness feature presented
+        return None
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Light to turn off."""

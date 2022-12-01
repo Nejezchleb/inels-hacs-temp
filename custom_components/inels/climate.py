@@ -41,7 +41,7 @@ async def async_setup_entry(
         [
             InelsClimate(device)
             for device in device_list
-            if device.device_type == Platform.CLIMATE
+            if device.device_type.value == Platform.CLIMATE
         ],
     )
 

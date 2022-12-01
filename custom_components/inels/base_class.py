@@ -2,9 +2,6 @@
 from __future__ import annotations
 
 from typing import Any
-
-from inelsmqtt.devices import Device
-
 from homeassistant.helpers.entity import DeviceInfo, Entity
 
 from .const import DOMAIN
@@ -15,10 +12,10 @@ class InelsBaseEntity(Entity):
 
     def __init__(
         self,
-        device: Device,
+        device: Any,
     ) -> None:
         """Init base entity."""
-        self._device: Device = device
+        self._device: Any = device
         self._device_id = self._device.unique_id
         self._attr_name = self._device.title
 
